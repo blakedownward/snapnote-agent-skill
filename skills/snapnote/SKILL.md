@@ -9,11 +9,12 @@ SnapNote is a file-based workflow for screenshot-bound UI feedback packets. Use 
 
 ## Install Workflow
 
-Copy this skill's `templates/default/.` contents into the target repository root.
+Copy this skill's `templates/default/.` contents into the target repository root. The `templates/default` path is relative to this installed skill directory, not necessarily the agent's current working directory.
 
 Example:
 
 ```sh
+cd /path/to/installed/skills/snapnote
 cp -R templates/default/. /path/to/target-repo/
 ```
 
@@ -30,16 +31,24 @@ After installation, the target repo should contain `.snapnote.config.json`, `AGE
    - `target.type` must be `rect`.
    - `target.coordinateSpace` must be `sourceImagePixels`.
    - `note.text` must be present and non-empty.
-4. Read `note.text` as the primary request. Treat optional `note.intent`, `agent.instructions`, and `context` fields as supporting guidance.
-5. Inspect the screenshot and target rectangle when available:
+4. Read `note.text` as the primary request. Pay close attention to intent, not only the literal visual target. Treat optional `note.intent`, `agent.instructions`, and `context` fields as supporting guidance.
+5. Check for behavioral intent before implementation:
+   - If `note.text` includes words such as `button`, `function`, `action`, `toggle`, `sort`, `filter`, `open`, `link`, `dropdown`, or `menu`, treat the SnapNote as a possible behavior request, not only a visual change.
+   - Search for existing state, handlers, sorting/filtering logic, navigation, menu behavior, and accessible button/link patterns before editing.
+   - If the requested behavior is ambiguous, infer conservatively from existing product logic only when there is a clear local pattern.
+   - If materially different behaviors are plausible, mark the note `needs-human-decision`, move it to `.snapnotes/blocked`, and explain the decision needed.
+6. Inspect the screenshot and target rectangle when available:
    - Decode `source.image` to a temporary image if needed.
+   - Handle `data:image/...;base64,` prefixes before base64 decoding.
+   - Write decoded screenshots only to temporary files, not into the repository.
    - Open `source.imageRef` when accessible.
    - Interpret `target` coordinates in source image pixels.
-6. Search the target repo for the likely implementation using visible text, routes, page titles, aria labels, component names, class names, and context metadata.
-7. Make the smallest safe code change that satisfies the note. Keep unrelated refactors out of the change.
-8. Run relevant existing checks, such as targeted tests, type checks, linters, or build commands. Do not add dependencies only to validate a SnapNote.
-9. Move completed notes to `.snapnotes/done`.
-10. Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
-11. Write a short implementation summary with the SnapNote id, result status, files changed, checks run, and residual risk.
+7. Search the target repo for the likely implementation using visible text, routes, page titles, aria labels, component names, class names, behavior keywords, and context metadata.
+8. Make the smallest safe code change that satisfies the note's intended outcome. Keep unrelated refactors out of the change.
+9. Run relevant existing checks, such as targeted tests, type checks, linters, or build commands. Do not add dependencies only to validate a SnapNote.
+10. Move completed notes to `.snapnotes/done`.
+11. Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
+12. Preserve the original filename when moving a note. If the destination file already exists, append a timestamp or SnapNote id suffix before moving.
+13. Write a short implementation summary with the SnapNote id, result status, files changed, checks run, and residual risk.
 
 If visual context is missing or ambiguous, create a specific request in `.snapnotes/requests` and move the original note to `.snapnotes/blocked`.

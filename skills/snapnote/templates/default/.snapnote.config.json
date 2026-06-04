@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "0.1.0",
+  "notesDir": ".snapnotes",
+  "openDir": ".snapnotes/open",
+  "doneDir": ".snapnotes/done",
+  "blockedDir": ".snapnotes/blocked",
+  "requestsDir": ".snapnotes/requests",
+  "defaultWorkMode": "one-at-a-time",
+  "defaultBranchPrefix": "snapnote/",
+  "requireSummary": true,
+  "requireValidation": true
+}

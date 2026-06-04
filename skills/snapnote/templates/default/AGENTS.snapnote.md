@@ -11,7 +11,7 @@ Use this workflow for SnapNote packets saved in this repository. A local SnapNot
 
 ## Statuses
 
-Use these workflow result statuses in summaries, issue comments, or repository-approved metadata:
+Use these workflow result statuses in final agent summaries, issue comments, or repository-approved metadata:
 
 - `implemented`: The requested change was made and relevant checks passed or were reported.
 - `blocked`: Work cannot continue without missing context, access, assets, or a failing prerequisite.
@@ -19,7 +19,7 @@ Use these workflow result statuses in summaries, issue comments, or repository-a
 - `duplicate`: The note repeats another open or completed SnapNote.
 - `stale`: The captured UI or code path no longer appears to match the current application.
 
-Do not add unsupported fields to a strict SnapNote packet only to record status. Use the packet location and implementation summary as the source of truth unless the repository defines a compatible metadata extension.
+Do not add unsupported fields to a strict SnapNote packet only to record status. Use the packet location and final agent response summary as the source of truth unless the repository defines a compatible metadata extension.
 
 ## Processing Steps
 
@@ -39,28 +39,37 @@ Do not add unsupported fields to a strict SnapNote packet only to record status.
    - `note.text` must be present and non-empty.
    - If the repository has a SnapNote JSON Schema and a validator is already available, validate against it. Do not add a dependency just to validate.
 4. Read the human request from `note.text`.
+   - Pay close attention to intent, not only the literal visual target.
    - Treat `note.intent` and `agent.instructions` as supporting guidance when present.
-5. Inspect the screenshot and target region when image data is available.
+5. Check for behavioral intent before implementation.
+   - If `note.text` includes words such as `button`, `function`, `action`, `toggle`, `sort`, `filter`, `open`, `link`, `dropdown`, or `menu`, treat the SnapNote as a possible behavior request, not only a visual change.
+   - Search for existing state, handlers, sorting/filtering logic, navigation, menu behavior, and accessible button/link patterns before editing.
+   - If materially different behaviors are plausible, use `needs-human-decision`, move the note to `.snapnotes/blocked`, and explain the decision needed.
+6. Inspect the screenshot and target region when image data is available.
    - For `source.image`, decode the base64 data to a temporary image if needed.
+   - Handle `data:image/...;base64,` prefixes before base64 decoding.
+   - Write decoded screenshots only to temporary files, not into the repository.
    - For `source.imageRef`, open the referenced image when accessible.
    - Use `target` coordinates as source image pixels.
-6. Use context metadata when present.
+7. Use context metadata when present.
    - Check `context.app`, `context.page`, `context.viewport`, `context.selectedElement`, `context.consoleErrors`, and `context.networkHints`.
    - Treat DOM metadata as a hint, not proof of the implementation location.
-7. Search the codebase for likely components.
+8. Search the codebase for likely components.
    - Use route names, page titles, visible text, aria labels, class names, component names, and note keywords.
    - Prefer established repository patterns and the smallest relevant ownership boundary.
-8. Make the smallest safe change that satisfies the SnapNote.
+9. Make the smallest safe change that satisfies the SnapNote.
    - Keep unrelated refactors out of the change.
    - Preserve existing behavior unless the note clearly asks for a behavior change.
-9. Run relevant checks.
+10. Run relevant checks.
    - Use existing tests, type checks, linters, or targeted commands from the repository.
    - If a check cannot be run, state why in the implementation summary.
-10. Move the SnapNote after processing.
+11. Move the SnapNote after processing.
    - Move completed notes to `.snapnotes/done`.
    - Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
-11. Write a short implementation summary.
+   - Preserve the original filename when moving a note. If the destination file already exists, append a timestamp or SnapNote id suffix before moving.
+12. Write a short implementation summary in the final agent response.
    - Include the SnapNote id, result status, files changed, checks run, and any residual risk.
+   - Do not create a sidecar summary file or edit repository metadata unless the repository explicitly asks for that.
 
 ## When to Request a New SnapNote
 

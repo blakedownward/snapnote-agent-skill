@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "snapnote",
+  "id": "example-docs-validation",
+  "createdAt": "2026-06-04T00:00:00Z",
+  "source": {
+    "type": "screenshot",
+    "imageRef": "example-screenshot.png"
+  },
+  "target": {
+    "type": "rect",
+    "coordinateSpace": "sourceImagePixels",
+    "x": 100,
+    "y": 80,
+    "width": 240,
+    "height": 80
+  },
+  "note": {
+    "text": "Example only: make the highlighted toolbar button easier to identify."
+  }
+}

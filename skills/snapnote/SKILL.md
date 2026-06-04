@@ -11,14 +11,23 @@ SnapNote is a file-based workflow for screenshot-bound UI feedback packets. Use 
 
 Copy this skill's `templates/default/.` contents into the target repository root. The `templates/default` path is relative to this installed skill directory, not necessarily the agent's current working directory.
 
-Example:
+POSIX example, run from the installed skill directory:
 
 ```sh
 cd /path/to/installed/skills/snapnote
 cp -R templates/default/. /path/to/target-repo/
 ```
 
+PowerShell example, run from the target repository root:
+
+```powershell
+Get-ChildItem -Force -LiteralPath 'C:\path\to\installed\skills\snapnote\templates\default' |
+  Copy-Item -Recurse -Force -Destination .
+```
+
 After installation, the target repo should contain `.snapnote.config.json`, `AGENTS.snapnote.md`, `docs/snapnote-workflow.md`, and `.snapnotes/open`, `.snapnotes/done`, `.snapnotes/blocked`, and `.snapnotes/requests`.
+
+If the target repo already has a root `AGENTS.md`, add a short pointer from it to `AGENTS.snapnote.md`. If there is no root `AGENTS.md`, create one that tells agents to read `AGENTS.snapnote.md` for SnapNote work.
 
 ## Process SnapNotes
 
@@ -49,6 +58,6 @@ After installation, the target repo should contain `.snapnote.config.json`, `AGE
 10. Move completed notes to `.snapnotes/done`.
 11. Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
 12. Preserve the original filename when moving a note. If the destination file already exists, append a timestamp or SnapNote id suffix before moving.
-13. Write a short implementation summary with the SnapNote id, result status, files changed, checks run, and residual risk.
+13. Write a short implementation summary in the final agent response with the SnapNote id, result status, files changed, checks run, and residual risk. Do not create a sidecar summary file or edit repository metadata unless the target repo explicitly asks for that.
 
 If visual context is missing or ambiguous, create a specific request in `.snapnotes/requests` and move the original note to `.snapnotes/blocked`.

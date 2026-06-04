@@ -4,6 +4,10 @@ This repository can act as a local queue for SnapNote packets captured by a Snap
 
 This workflow is intentionally file-based. It does not define a web app, issue tracker integration, background worker, or dependency on a specific agent.
 
+## Agent Discovery
+
+Some agents may not automatically discover `AGENTS.snapnote.md`. If the target repo already has a root `AGENTS.md`, link to `AGENTS.snapnote.md` from that file. If it does not, create a root `AGENTS.md` that tells agents to read `AGENTS.snapnote.md` for SnapNote work.
+
 ## Directories
 
 ```text
@@ -43,15 +47,20 @@ This workflow is intentionally file-based. It does not define a web app, issue t
 1. List `.snapnotes/open/*.snapnote.json`.
 2. Choose one SnapNote, usually the oldest by `createdAt`.
 3. Validate that it is a SnapNote packet with the required fields.
-4. Read `note.text` as the primary request.
-5. Inspect `source.image` or `source.imageRef` if available.
-6. Use `target` as a rectangle in source image pixels.
-7. Use optional `context` metadata to find the route, page, component, DOM element, console error, or network hint.
-8. Search the codebase for the likely implementation.
-9. Make the smallest safe change.
-10. Run relevant checks already available in the repo.
-11. Move the packet to `done` or `blocked`.
-12. Write a short summary with the SnapNote id, result status, changes made, and checks run.
+4. Read `note.text` as the primary request, paying close attention to intent.
+5. Check whether words like `button`, `function`, `toggle`, `sort`, `filter`, `link`, `dropdown`, or `menu` imply a behavior request.
+6. Inspect `source.image` or `source.imageRef` if available. Decode `data:image/...;base64,` values only to temporary files.
+7. Use `target` as a rectangle in source image pixels.
+8. Use optional `context` metadata to find the route, page, component, DOM element, console error, or network hint.
+9. Search the codebase for the likely implementation.
+10. Make the smallest safe change.
+11. Run relevant checks already available in the repo.
+12. Move the packet to `done` or `blocked`, preserving the original filename unless a collision requires a timestamp or id suffix.
+13. Write a short summary in the final agent response with the SnapNote id, result status, changes made, and checks run. Do not create a sidecar summary file unless the repository explicitly asks for one.
+
+## Example Packet
+
+`docs/example.snapnote.json` is a docs-only example packet for first-run validation. It is intentionally outside `.snapnotes/open`, so it should not be treated as queued work.
 
 ## Workflow Statuses
 

@@ -48,6 +48,7 @@ skills/snapnote/templates/default/
   .snapnote.config.json
   AGENTS.snapnote.md
   docs/
+    example.snapnote.json
     snapnote-workflow.md
 ```
 
@@ -57,10 +58,17 @@ For backward compatibility, the same template is also present at `templates/defa
 
 Copy the contents of `skills/snapnote/templates/default/` into the root of your target repo.
 
-Example:
+POSIX example:
 
 ```sh
 cp -R skills/snapnote/templates/default/. /path/to/your-project/
+```
+
+PowerShell example, run from the target repo root:
+
+```powershell
+Get-ChildItem -Force -LiteralPath 'C:\path\to\snapnote-agent-skill\skills\snapnote\templates\default' |
+  Copy-Item -Recurse -Force -Destination .
 ```
 
 After installation, the target repo will contain:
@@ -72,10 +80,13 @@ After installation, the target repo will contain:
 .snapnotes/requests/
 .snapnote.config.json
 AGENTS.snapnote.md
+docs/example.snapnote.json
 docs/snapnote-workflow.md
 ```
 
 A local SnapNote capture app can then save `.snapnote.json` files into `.snapnotes/open`, and coding agents can process them using `AGENTS.snapnote.md`.
+
+`AGENTS.snapnote.md` may not be auto-discovered by every agent. Link to it from an existing root `AGENTS.md`, or create a root `AGENTS.md` when absent.
 
 ## Quick Validation
 

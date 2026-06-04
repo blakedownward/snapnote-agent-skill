@@ -50,6 +50,8 @@ skills/snapnote/templates/default/
   docs/
     example.snapnote.json
     snapnote-workflow.md
+  scripts/
+    snapnote_packet_helper.py
 ```
 
 For backward compatibility, the same template is also present at `templates/default/`.
@@ -82,11 +84,18 @@ After installation, the target repo will contain:
 AGENTS.snapnote.md
 docs/example.snapnote.json
 docs/snapnote-workflow.md
+scripts/snapnote_packet_helper.py
 ```
 
 A local SnapNote capture app can then save `.snapnote.json` files into `.snapnotes/open`, and coding agents can process them using `AGENTS.snapnote.md`.
 
 `AGENTS.snapnote.md` may not be auto-discovered by every agent. Link to it from an existing root `AGENTS.md`, or create a root `AGENTS.md` when absent.
+
+The helper script can validate a packet and decode/crop screenshots to temp files:
+
+```sh
+python scripts/snapnote_packet_helper.py --decode --crop .snapnotes/open/example.snapnote.json
+```
 
 ## Quick Validation
 

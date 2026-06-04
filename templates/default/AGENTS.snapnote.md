@@ -38,6 +38,7 @@ Do not add unsupported fields to a strict SnapNote packet only to record status.
    - `target.coordinateSpace` must be `sourceImagePixels`.
    - `note.text` must be present and non-empty.
    - If the repository has a SnapNote JSON Schema and a validator is already available, validate against it. Do not add a dependency just to validate.
+   - You may use `python scripts/snapnote_packet_helper.py .snapnotes/open/<file>.snapnote.json` for first-pass validation.
 4. Read the human request from `note.text`.
    - Pay close attention to intent, not only the literal visual target.
    - Treat `note.intent` and `agent.instructions` as supporting guidance when present.
@@ -51,8 +52,10 @@ Do not add unsupported fields to a strict SnapNote packet only to record status.
    - Write decoded screenshots only to temporary files, not into the repository.
    - For `source.imageRef`, open the referenced image when accessible.
    - Use `target` coordinates as source image pixels.
+   - You may use `python scripts/snapnote_packet_helper.py --decode --crop .snapnotes/open/<file>.snapnote.json` to write decoded/cropped images to temp files. Cropping requires Pillow only if it is already available.
 7. Use context metadata when present.
-   - Check `context.app`, `context.page`, `context.viewport`, `context.selectedElement`, `context.consoleErrors`, and `context.networkHints`.
+   - Check `context.app`, `context.route`, `context.page`, `context.viewport`, `context.selectedElement`, `context.consoleErrors`, and `context.networkHints`.
+   - Prefer packets that include `context.route`, selected DOM metadata, and component hints.
    - Treat DOM metadata as a hint, not proof of the implementation location.
 8. Search the codebase for likely components.
    - Use route names, page titles, visible text, aria labels, class names, component names, and note keywords.
@@ -64,9 +67,11 @@ Do not add unsupported fields to a strict SnapNote packet only to record status.
    - Use existing tests, type checks, linters, or targeted commands from the repository.
    - If a check cannot be run, state why in the implementation summary.
 11. Move the SnapNote after processing.
+   - Move only after relevant checks have run or a check-blocking reason is known.
    - Move completed notes to `.snapnotes/done`.
    - Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
    - Preserve the original filename when moving a note. If the destination file already exists, append a timestamp or SnapNote id suffix before moving.
+   - Keep the queue move as its own deliberate file operation. Do not batch it with unrelated queue, cleanup, or status commands.
 12. Write a short implementation summary in the final agent response.
    - Include the SnapNote id, result status, files changed, checks run, and any residual risk.
    - Do not create a sidecar summary file or edit repository metadata unless the repository explicitly asks for that.

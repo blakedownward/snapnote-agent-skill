@@ -25,7 +25,7 @@ Get-ChildItem -Force -LiteralPath 'C:\path\to\installed\skills\snapnote\template
   Copy-Item -Recurse -Force -Destination .
 ```
 
-After installation, the target repo should contain `.snapnote.config.json`, `AGENTS.snapnote.md`, `docs/snapnote-workflow.md`, and `.snapnotes/open`, `.snapnotes/done`, `.snapnotes/blocked`, and `.snapnotes/requests`.
+After installation, the target repo should contain `.snapnote.config.json`, `AGENTS.snapnote.md`, `docs/snapnote-workflow.md`, `scripts/snapnote_packet_helper.py`, and `.snapnotes/open`, `.snapnotes/done`, `.snapnotes/blocked`, and `.snapnotes/requests`.
 
 If the target repo already has a root `AGENTS.md`, add a short pointer from it to `AGENTS.snapnote.md`. If there is no root `AGENTS.md`, create one that tells agents to read `AGENTS.snapnote.md` for SnapNote work.
 
@@ -40,6 +40,7 @@ If the target repo already has a root `AGENTS.md`, add a short pointer from it t
    - `target.type` must be `rect`.
    - `target.coordinateSpace` must be `sourceImagePixels`.
    - `note.text` must be present and non-empty.
+   - You may use `python scripts/snapnote_packet_helper.py .snapnotes/open/<file>.snapnote.json` when the helper exists in the target repo.
 4. Read `note.text` as the primary request. Pay close attention to intent, not only the literal visual target. Treat optional `note.intent`, `agent.instructions`, and `context` fields as supporting guidance.
 5. Check for behavioral intent before implementation:
    - If `note.text` includes words such as `button`, `function`, `action`, `toggle`, `sort`, `filter`, `open`, `link`, `dropdown`, or `menu`, treat the SnapNote as a possible behavior request, not only a visual change.
@@ -52,12 +53,19 @@ If the target repo already has a root `AGENTS.md`, add a short pointer from it t
    - Write decoded screenshots only to temporary files, not into the repository.
    - Open `source.imageRef` when accessible.
    - Interpret `target` coordinates in source image pixels.
+   - You may use `python scripts/snapnote_packet_helper.py --decode --crop .snapnotes/open/<file>.snapnote.json` to write decoded/cropped images to temp files. Cropping requires Pillow only if it is already available.
 7. Search the target repo for the likely implementation using visible text, routes, page titles, aria labels, component names, class names, behavior keywords, and context metadata.
 8. Make the smallest safe code change that satisfies the note's intended outcome. Keep unrelated refactors out of the change.
 9. Run relevant existing checks, such as targeted tests, type checks, linters, or build commands. Do not add dependencies only to validate a SnapNote.
-10. Move completed notes to `.snapnotes/done`.
-11. Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
-12. Preserve the original filename when moving a note. If the destination file already exists, append a timestamp or SnapNote id suffix before moving.
-13. Write a short implementation summary in the final agent response with the SnapNote id, result status, files changed, checks run, and residual risk. Do not create a sidecar summary file or edit repository metadata unless the target repo explicitly asks for that.
+10. Move the note only after relevant checks have run or a check-blocking reason is known.
+11. Move completed notes to `.snapnotes/done`.
+12. Move blocked, stale, duplicate, or decision-dependent notes to `.snapnotes/blocked`.
+13. Preserve the original filename when moving a note. If the destination file already exists, append a timestamp or SnapNote id suffix before moving.
+14. Keep the queue move as its own deliberate file operation. Do not batch it with unrelated queue, cleanup, or status commands.
+15. Write a short implementation summary in the final agent response with the SnapNote id, result status, files changed, checks run, and residual risk. Do not create a sidecar summary file or edit repository metadata unless the target repo explicitly asks for that.
 
 If visual context is missing or ambiguous, create a specific request in `.snapnotes/requests` and move the original note to `.snapnotes/blocked`.
+
+## Capture Context
+
+When authoring or evaluating captured packets, prefer packets that include optional `context.route`, selected DOM metadata, and component hints. These fields are hints, not proof, but they make first-run implementation much less dependent on visual guessing.

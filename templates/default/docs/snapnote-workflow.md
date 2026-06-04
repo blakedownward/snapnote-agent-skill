@@ -51,16 +51,31 @@ Some agents may not automatically discover `AGENTS.snapnote.md`. If the target r
 5. Check whether words like `button`, `function`, `toggle`, `sort`, `filter`, `link`, `dropdown`, or `menu` imply a behavior request.
 6. Inspect `source.image` or `source.imageRef` if available. Decode `data:image/...;base64,` values only to temporary files.
 7. Use `target` as a rectangle in source image pixels.
-8. Use optional `context` metadata to find the route, page, component, DOM element, console error, or network hint.
+8. Use optional `context` metadata to find the route, page, component, DOM element, console error, or network hint. Prefer packets that include `context.route`, selected DOM metadata, and component hints.
 9. Search the codebase for the likely implementation.
 10. Make the smallest safe change.
 11. Run relevant checks already available in the repo.
-12. Move the packet to `done` or `blocked`, preserving the original filename unless a collision requires a timestamp or id suffix.
+12. Move the packet to `done` or `blocked` only after checks have run or a check-blocking reason is known. Preserve the original filename unless a collision requires a timestamp or id suffix, and keep the queue move as its own deliberate file operation.
 13. Write a short summary in the final agent response with the SnapNote id, result status, changes made, and checks run. Do not create a sidecar summary file unless the repository explicitly asks for one.
+
+## Helper Script
+
+Use `scripts/snapnote_packet_helper.py` for first-pass validation and temp-file image handling:
+
+```sh
+python scripts/snapnote_packet_helper.py .snapnotes/open/<file>.snapnote.json
+python scripts/snapnote_packet_helper.py --decode --crop .snapnotes/open/<file>.snapnote.json
+```
+
+The helper decodes `source.image` data URI/base64 values to OS temp files. Cropping uses Pillow only when it is already available.
 
 ## Example Packet
 
 `docs/example.snapnote.json` is a docs-only example packet for first-run validation. It is intentionally outside `.snapnotes/open`, so it should not be treated as queued work.
+
+## Capture Context
+
+Capture tools should include `context.route`, selected DOM metadata, and component hints by default when available. Agents should treat these values as hints that speed up code search, not as proof of the implementation location.
 
 ## Workflow Statuses
 

@@ -47,16 +47,17 @@ Some agents may not automatically discover `AGENTS.snapnote.md`. If the target r
 1. List `.snapnotes/open/*.snapnote.json`.
 2. Choose one SnapNote, usually the oldest by `createdAt`.
 3. Validate that it is a SnapNote packet with the required fields.
-4. Read `note.text` as the primary request, paying close attention to intent.
-5. Check whether words like `button`, `function`, `toggle`, `sort`, `filter`, `link`, `dropdown`, or `menu` imply a behavior request.
-6. Inspect `source.image` or `source.imageRef` if available. Decode `data:image/...;base64,` values only to temporary files.
-7. Use `target` as a rectangle in source image pixels.
-8. Use optional `context` metadata to find the route, page, component, DOM element, console error, or network hint. Prefer packets that include `context.route`, selected DOM metadata, and component hints.
-9. Search the codebase for the likely implementation.
-10. Make the smallest safe change.
-11. Run relevant checks already available in the repo.
-12. Move the packet to `done` or `blocked` only after checks have run or a check-blocking reason is known. Preserve the original filename unless a collision requires a timestamp or id suffix, and keep the queue move as its own deliberate file operation.
-13. Write a short summary in the final agent response with the SnapNote id, result status, changes made, and checks run. Do not create a sidecar summary file unless the repository explicitly asks for one.
+4. Run a context quality check before implementation. Report whether the packet includes screenshot/image data, target rectangle, note text, note intent, `context.page.route`, `context.page.url`, `context.page.title`, selectedElement metadata, DOM path, viewport, console errors, and network hints. Briefly state how missing context changes implementation risk.
+5. Interpret the request before editing code. Write: Visual target, User note, Interpreted task, Likely task type, Likely files/components, and Ambiguity or risk. Use one task type: `visual-change`, `behavior-change`, `copy-change`, `layout-issue`, `bug`, `question`, or `unknown`.
+6. Do not treat every SnapNote as a visual-only change. Check whether `note.text`, `note.intent`, or words like `button`, `function`, `toggle`, `sort`, `filter`, `link`, `dropdown`, or `menu` imply a behavior request.
+7. Inspect `source.image.data` or `source.imageRef` if available. Decode `data:image/...;base64,` values only to temporary files. A legacy packet may have `source.image` as a string.
+8. Use `target` as a rectangle in source image pixels.
+9. Use optional `context` metadata to find the route, page, component, DOM element, console error, or network hint. Prefer packets that include route/page context, selected DOM metadata, DOM path, and component hints.
+10. Search the codebase for the likely implementation.
+11. Make the smallest safe change.
+12. Run relevant checks already available in the repo.
+13. Move the packet to `done` or `blocked` only after checks have run or a check-blocking reason is known. Preserve the original filename unless a collision requires a timestamp or id suffix, and keep the queue move as its own deliberate file operation.
+14. Write a short summary in the final agent response with the SnapNote id, result status, changes made, and checks run. Do not create a sidecar summary file unless the repository explicitly asks for one.
 
 ## Helper Script
 
@@ -67,7 +68,7 @@ python scripts/snapnote_packet_helper.py .snapnotes/open/<file>.snapnote.json
 python scripts/snapnote_packet_helper.py --decode --crop .snapnotes/open/<file>.snapnote.json
 ```
 
-The helper decodes `source.image` data URI/base64 values to OS temp files. Cropping uses Pillow only when it is already available.
+The helper decodes SnapNote Spec v0.1.0 `source.image.data` values using `source.image.mimeType` and `source.image.encoding`. It may also decode legacy `source.image` string values with a warning. Cropping uses Pillow only when it is already available.
 
 ## Example Packet
 
@@ -75,7 +76,15 @@ The helper decodes `source.image` data URI/base64 values to OS temp files. Cropp
 
 ## Capture Context
 
-Capture tools should include `context.route`, selected DOM metadata, and component hints by default when available. Agents should treat these values as hints that speed up code search, not as proof of the implementation location.
+SnapNotes work best when they include:
+
+- A human note that describes the intended outcome.
+- Screenshot/image data.
+- A target rectangle around the relevant UI.
+- Route and page context, such as `context.page.route`, `context.page.url`, and `context.page.title`.
+- Selected element metadata when available, including DOM path, accessible name, visible text, test id, or component hint.
+
+Capture tools should include route/page context, selected DOM metadata, and component hints by default when available. Agents should treat these values as hints that speed up code search, not as proof of the implementation location.
 
 ## Workflow Statuses
 
@@ -91,10 +100,11 @@ Use these statuses in summaries or repository-approved metadata. The file locati
 
 Agents should request a new SnapNote when:
 
-- Visual context is ambiguous.
 - Multiple UI targets match the note.
-- The issue depends on layout, responsive behavior, scrolling, or viewport size.
-- The current note is stale.
+- The screenshot is missing and the text is ambiguous.
+- Route/page context is missing and the codebase has multiple likely matches.
+- The issue depends on viewport/layout and no viewport is provided.
+- The packet appears stale.
 
 Place requests in `.snapnotes/requests` as `.snapnote-request.json` files.
 

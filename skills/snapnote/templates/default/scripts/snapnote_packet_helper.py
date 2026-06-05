@@ -19,6 +19,7 @@ from typing import Any
 
 
 DATA_URI_RE = re.compile(r"^data:(?P<mime>image/[a-zA-Z0-9.+-]+);base64,(?P<data>.*)$", re.DOTALL)
+SUPPORTED_IMAGE_ENCODINGS = {"base64"}
 
 
 def fail(message: str) -> int:
@@ -74,17 +75,39 @@ def temp_output_path(packet_id: str, suffix: str) -> Path:
     return temp_dir / f"{safe_id}{suffix}"
 
 
-def decode_source_image(packet: dict[str, Any]) -> Path | None:
+def source_image_payload(packet: dict[str, Any]) -> tuple[str, str] | None:
     source = packet.get("source")
     if not isinstance(source, dict):
         return None
 
     image = source.get("image")
-    if not isinstance(image, str) or not image.strip():
+    if isinstance(image, dict):
+        data = image.get("data")
+        if not isinstance(data, str) or not data.strip():
+            return None
+
+        encoding = image.get("encoding", "base64")
+        if not isinstance(encoding, str) or encoding.lower() not in SUPPORTED_IMAGE_ENCODINGS:
+            raise ValueError("source.image.encoding must be 'base64'")
+
+        mime = image.get("mimeType", "image/png")
+        if not isinstance(mime, str) or not mime.strip():
+            mime = "image/png"
+        return data.strip(), mime.strip()
+
+    if isinstance(image, str) and image.strip():
+        print("WARNING: source.image is a legacy string shape; use source.image.data with mimeType and encoding.", file=sys.stderr)
+        return image.strip(), "image/png"
+
+    return None
+
+
+def decode_source_image(packet: dict[str, Any]) -> Path | None:
+    image_payload = source_image_payload(packet)
+    if image_payload is None:
         return None
 
-    mime = "image/png"
-    payload = image.strip()
+    payload, mime = image_payload
     match = DATA_URI_RE.match(payload)
     if match:
         mime = match.group("mime")
@@ -147,7 +170,7 @@ def print_context_hints(packet: dict[str, Any]) -> None:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Validate a SnapNote packet and optionally decode/crop its screenshot.")
     parser.add_argument("packet", type=Path, help="Path to a .snapnote.json packet")
-    parser.add_argument("--decode", action="store_true", help="Decode source.image to an OS temp file when present")
+    parser.add_argument("--decode", action="store_true", help="Decode source.image.data to an OS temp file when present")
     parser.add_argument("--crop", action="store_true", help="Crop target rect to an OS temp file when Pillow is available")
     args = parser.parse_args(argv)
 
@@ -171,7 +194,7 @@ def main(argv: list[str]) -> int:
         try:
             image_path = decode_source_image(packet)
         except (ValueError, OSError) as exc:
-            return fail(f"could not decode source.image: {exc}")
+            return fail(f"could not decode source.image data: {exc}")
         if image_path:
             print(f"Decoded source.image: {image_path}")
         else:
@@ -179,7 +202,7 @@ def main(argv: list[str]) -> int:
             if image_path:
                 print(f"Using source.imageRef: {image_path}")
             else:
-                print("No decodable source.image or accessible source.imageRef found.")
+                print("No decodable source.image.data or accessible source.imageRef found.")
 
     if args.crop and image_path:
         try:

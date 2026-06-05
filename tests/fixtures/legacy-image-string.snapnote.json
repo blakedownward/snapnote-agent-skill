@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "snapnote",
+  "id": "legacy-image-string",
+  "createdAt": "2026-06-05T00:00:00Z",
+  "source": {
+    "type": "screenshot",
+    "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
+  },
+  "target": {
+    "type": "rect",
+    "coordinateSpace": "sourceImagePixels",
+    "x": 0,
+    "y": 0,
+    "width": 1,
+    "height": 1
+  },
+  "note": {
+    "text": "Legacy packet fixture."
+  }
+}

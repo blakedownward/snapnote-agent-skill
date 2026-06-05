@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "snapnote",
+  "id": "valid-v0-1-0-image-data",
+  "createdAt": "2026-06-05T00:00:00Z",
+  "source": {
+    "type": "screenshot",
+    "image": {
+      "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+      "mimeType": "image/png",
+      "encoding": "base64"
+    }
+  },
+  "target": {
+    "type": "rect",
+    "coordinateSpace": "sourceImagePixels",
+    "x": 0,
+    "y": 0,
+    "width": 1,
+    "height": 1
+  },
+  "context": {
+    "page": {
+      "route": "/orders",
+      "url": "http://localhost:3000/orders",
+      "title": "Orders"
+    },
+    "selectedElement": {
+      "tagName": "button",
+      "text": "Sort",
+      "ariaLabel": "Sort orders",
+      "domPath": "main > section > button[data-testid='sort-orders']"
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "note": {
+    "text": "Make this sort button apply the selected sort order.",
+    "intent": "behavior-change"
+  }
+}
